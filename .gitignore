@@ -1,0 +1,10 @@
+node_modules/
+data/
+uploads/*
+!uploads/.gitkeep
+server.log
+server.err
+.env
+*.db
+.DS_Store
+Thumbs.db
