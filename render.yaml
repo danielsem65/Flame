@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: flame
+    env: node
+    buildCommand: npm install
+    startCommand: node server/index.js
+    envVars:
+      - key: NODE_VERSION
+        value: 20.11.0
