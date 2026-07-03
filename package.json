@@ -2,6 +2,7 @@
   "name": "flame",
   "version": "1.0.0",
   "description": "Modern dating chat application - find your spark",
+  "engines": { "node": "20.x" },
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
