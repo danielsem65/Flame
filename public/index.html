@@ -120,6 +120,7 @@
             </div>
           </div>
           <div class="chat-header-actions">
+            <button id="video-call-btn" class="icon-btn" title="Video Call"><i class="fas fa-video"></i></button>
             <button id="chat-search-btn" class="icon-btn" title="Search in chat"><i class="fas fa-search"></i></button>
             <button id="chat-info-btn" class="icon-btn" title="Chat Info"><i class="fas fa-info-circle"></i></button>
           </div>
@@ -301,6 +302,39 @@
     </div>
   </div>
 
+  <!-- Incoming Call Modal -->
+  <div class="call-modal hidden" id="incoming-call">
+    <div class="call-modal-content">
+      <div class="call-avatar" id="caller-avatar"><div class="avatar large">?</div></div>
+      <h3 id="caller-name">Incoming Call...</h3>
+      <p id="caller-status">Flame Video Call</p>
+      <div class="call-actions">
+        <button class="call-btn decline" id="call-decline"><i class="fas fa-phone-slash"></i></button>
+        <button class="call-btn accept" id="call-accept"><i class="fas fa-phone"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video Call Overlay -->
+  <div class="video-overlay hidden" id="video-overlay">
+    <div class="video-header">
+      <span id="video-call-timer">00:00</span>
+      <span id="video-call-with"></span>
+    </div>
+    <div class="video-container">
+      <video id="remote-video" autoplay playsinline></video>
+      <div class="local-video-container">
+        <video id="local-video" autoplay playsinline muted></video>
+      </div>
+    </div>
+    <div class="video-controls">
+      <button class="vc-btn" id="vc-mute"><i class="fas fa-microphone"></i></button>
+      <button class="vc-btn" id="vc-camera"><i class="fas fa-video"></i></button>
+      <button class="vc-btn danger" id="vc-end"><i class="fas fa-phone-slash"></i></button>
+      <button class="vc-btn" id="vc-switch"><i class="fas fa-sync-alt"></i></button>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div class="toast-container" id="toast-container"></div>
 
@@ -311,5 +345,6 @@
   <script src="js/socket.js"></script>
   <script src="js/chat.js"></script>
   <script src="js/ui.js"></script>
+  <script src="js/video.js"></script>
 </body>
 </html>

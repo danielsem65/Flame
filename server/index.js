@@ -276,6 +276,39 @@ io.on('connection', (socket) => {
     socket.to(conversationId).emit('typing:stop', { conversationId, userId });
   });
 
+  // Video call signaling
+  socket.on('video:offer', ({ conversationId, offer }) => {
+    socket.to(conversationId).emit('video:offer', { offer, from: currentUserId });
+  });
+
+  socket.on('video:answer', ({ conversationId, answer }) => {
+    socket.to(conversationId).emit('video:answer', { answer, from: currentUserId });
+  });
+
+  socket.on('video:ice-candidate', ({ conversationId, candidate }) => {
+    socket.to(conversationId).emit('video:ice-candidate', { candidate, from: currentUserId });
+  });
+
+  socket.on('video:ring', ({ conversationId, callerName, callerAvatar }) => {
+    socket.to(conversationId).emit('video:ring', { conversationId, from: currentUserId, callerName, callerAvatar });
+  });
+
+  socket.on('video:accept', ({ conversationId }) => {
+    socket.to(conversationId).emit('video:accept', { conversationId, from: currentUserId });
+  });
+
+  socket.on('video:decline', ({ conversationId }) => {
+    socket.to(conversationId).emit('video:decline', { conversationId, from: currentUserId });
+  });
+
+  socket.on('video:end', ({ conversationId }) => {
+    socket.to(conversationId).emit('video:end', { conversationId });
+  });
+
+  socket.on('video:user-left', ({ conversationId }) => {
+    socket.to(conversationId).emit('video:user-left', { conversationId });
+  });
+
   socket.on('conversation:join', ({ conversationId, userId }) => {
     socket.join(conversationId);
     db.prepare('INSERT OR IGNORE INTO conversation_members (conversationId, userId) VALUES (?,?)').run(conversationId, userId);

@@ -4,6 +4,7 @@ function initApp() {
   el.app.classList.remove('hidden');
   updateUserUI();
   connectSocket();
+  if (typeof setupVideoSocketHandlers === 'function') setupVideoSocketHandlers();
   loadConversations();
   loadAllUsers();
 }
