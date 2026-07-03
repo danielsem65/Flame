@@ -3,6 +3,14 @@ function showAuthError(form, msg) {
   else el.registerError.textContent = msg;
 }
 
+function saveSession(user) {
+  localStorage.setItem('flame_user', JSON.stringify({ id: user.id, username: user.username, displayName: user.displayName, avatar: user.avatar }));
+}
+
+function clearSession() {
+  localStorage.removeItem('flame_user');
+}
+
 document.querySelectorAll('.auth-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
@@ -21,17 +29,15 @@ el.loginForm.addEventListener('submit', async (e) => {
   if (!username || !password) return showAuthError('login', 'Please fill all fields');
   try {
     const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     });
     const data = await res.json();
     if (!res.ok) return showAuthError('login', data.error);
     state.user = data;
+    saveSession(data);
     initApp();
-  } catch (e) {
-    showAuthError('login', 'Connection error');
-  }
+  } catch (e) { showAuthError('login', 'Connection error'); }
 });
 
 el.registerForm.addEventListener('submit', async (e) => {
@@ -45,22 +51,36 @@ el.registerForm.addEventListener('submit', async (e) => {
   if (password.length < 4) return showAuthError('register', 'Password too short');
   try {
     const res = await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, displayName, password })
     });
     const data = await res.json();
     if (!res.ok) return showAuthError('register', data.error);
     state.user = data;
+    saveSession(data);
     initApp();
-  } catch (e) {
-    showAuthError('register', 'Connection error');
-  }
+  } catch (e) { showAuthError('register', 'Connection error'); }
 });
 
 el.logoutBtn.addEventListener('click', () => {
   if (state.socket) state.socket.disconnect();
   state.user = null;
+  clearSession();
   el.app.classList.add('hidden');
   el.auth.classList.remove('hidden');
 });
+
+// Auto-login from saved session
+(async function autoLogin() {
+  const saved = localStorage.getItem('flame_user');
+  if (!saved) return;
+  try {
+    const parsed = JSON.parse(saved);
+    const res = await fetch('/api/me/' + parsed.id);
+    if (!res.ok) { clearSession(); return; }
+    const user = await res.json();
+    state.user = user;
+    saveSession(user);
+    initApp();
+  } catch (e) { clearSession(); }
+})();

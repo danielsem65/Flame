@@ -51,6 +51,14 @@ app.post('/api/login', (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+app.get('/api/me/:id', (req, res) => {
+  try {
+    const user = db.prepare('SELECT id, username, displayName, avatar FROM users WHERE id = ?').get(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 app.post('/api/upload', upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   res.json({ url: '/uploads/' + req.file.filename, type: req.file.mimetype });
