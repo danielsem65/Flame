@@ -1,18 +1,33 @@
+// ==================== TAB NAVIGATION ====================
+const views = ['feed','reels','chats','notifs','profile'];
+
+function switchTab(tab) {
+  views.forEach(v => {
+    const view = document.getElementById('view-' + v);
+    if (view) view.classList.toggle('active', v === tab);
+  });
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === tab));
+  if (tab === 'feed') el.feedContainer.scrollTop = 0;
+  if (tab === 'feed' && typeof loadFeed === 'function') loadFeed();
+  if (tab === 'reels' && typeof loadReels === 'function') loadReels();
+  if (tab === 'notifs' && typeof loadNotifications === 'function') loadNotifications();
+  if (tab === 'profile' && typeof loadMyProfile === 'function') loadMyProfile();
+}
+
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => switchTab(item.dataset.view));
+});
+
 // ==================== INIT ====================
 function initApp() {
   el.auth.classList.add('hidden');
   el.app.classList.remove('hidden');
-  updateUserUI();
   connectSocket();
   if (typeof setupVideoSocketHandlers === 'function') setupVideoSocketHandlers();
   loadConversations();
   loadAllUsers();
-}
-
-function updateUserUI() {
-  el.myName.textContent = state.user.displayName;
-  el.myAvatar.innerHTML = state.user.avatar ? `<img src="${state.user.avatar}">` : getInitials(state.user.displayName);
-  el.myAvatar.style.background = state.user.avatar ? 'none' : '';
+  if (typeof initSocial === 'function') initSocial();
+  switchTab('feed');
 }
 
 // ==================== THEME ====================
@@ -20,9 +35,9 @@ function setTheme(theme) {
   state.theme = theme;
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('mlc-theme', theme);
-  el.themeToggle.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+  if (el.themeToggleFeed) el.themeToggleFeed.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
 }
-el.themeToggle.addEventListener('click', () => setTheme(state.theme === 'dark' ? 'light' : 'dark'));
+if (el.themeToggleFeed) el.themeToggleFeed.addEventListener('click', () => setTheme(state.theme === 'dark' ? 'light' : 'dark'));
 setTheme(state.theme);
 
 // ==================== NEW CHAT ====================
@@ -31,7 +46,6 @@ let selectedUsers = [];
 let chatMode = 'direct';
 
 el.newChatBtn.addEventListener('click', () => openNewChat());
-el.startChatBtn.addEventListener('click', () => openNewChat());
 
 function openNewChat() {
   selectedUsers = [];
@@ -157,71 +171,23 @@ el.chatInfoBtn.addEventListener('click', () => {
 el.leaveChatBtn.addEventListener('click', () => {
   if (!state.currentConv || !confirm('Leave this conversation?')) return;
   el.chatInfoModal.classList.add('hidden');
-  el.chatView.classList.add('hidden');
-  el.noChat.classList.remove('hidden');
+  el.chatInline.classList.add('hidden');
+  el.conversationsList.classList.remove('hidden');
+  state.currentConv = null;
 });
 
-// ==================== PROFILE ====================
-el.currentUser.addEventListener('click', () => {
-  el.profileUsername.textContent = state.user.username;
-  el.profileDisplayname.value = state.user.displayName;
-  const av = el.profileAvatar.querySelector('.avatar');
-  av.innerHTML = state.user.avatar ? `<img src="${state.user.avatar}">` : getInitials(state.user.displayName);
-  av.style.background = state.user.avatar ? 'none' : '';
-  el.profileModal.classList.remove('hidden');
+// ==================== CHAT SEARCH TOGGLE ====================
+el.chatsSearchBtn.addEventListener('click', () => {
+  el.chatsSearchBar.classList.toggle('hidden');
+  if (!el.chatsSearchBar.classList.contains('hidden')) el.chatsSearchInput.focus();
 });
 
-el.saveProfileBtn.addEventListener('click', async () => {
-  const name = el.profileDisplayname.value.trim();
-  if (!name || name === state.user.displayName) return;
-  try {
-    await fetch('/api/users/' + state.user.id + '/profile', {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ displayName: name })
-    });
-    state.user.displayName = name;
-    updateUserUI();
-    showToast('Profile updated', 'success');
-    el.profileModal.classList.add('hidden');
-  } catch (e) { showToast('Error updating profile', 'error'); }
+el.chatsSearchClose.addEventListener('click', () => {
+  el.chatsSearchBar.classList.add('hidden');
+  el.chatsSearchInput.value = '';
+  loadConversations();
 });
 
-el.changeAvatarBtn.addEventListener('click', () => {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*';
-  input.onchange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const fd = new FormData();
-    fd.append('avatar', file);
-    fd.append('userId', state.user.id);
-    const res = await fetch('/api/upload-avatar', { method: 'POST', body: fd });
-    const data = await res.json();
-    state.user.avatar = data.url;
-    updateUserUI();
-    showToast('Avatar updated', 'success');
-    el.profileModal.classList.add('hidden');
-  };
-  input.click();
-});
-
-// ==================== ONLINE USERS ====================
-function updateOnlineUsers() {
-  const online = allUsers.filter(u => state.onlineUsers.has(u.id));
-  el.onlineCount.textContent = online.length;
-  if (online.length === 0) {
-    el.onlineUsers.innerHTML = '<span style="font-size:12px;color:var(--text-muted)">No one online</span>';
-    return;
-  }
-  el.onlineUsers.innerHTML = online.map(u => `
-    <div class="online-user" onclick="startDirectChat('${u.id}')" title="${escapeHtml(u.displayName)}">
-      <div class="avatar">${u.avatar ? `<img src="${u.avatar}">` : getInitials(u.displayName)}</div>
-      <span>${escapeHtml(u.displayName.split(' ')[0])}</span>
-    </div>
-  `).join('');
-}
-
-// ==================== CONTEXT MENU REACTIONS ====================
 window.toggleUser = toggleUser;
 
 console.log('Flame loaded!');

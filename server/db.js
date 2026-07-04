@@ -69,9 +69,83 @@ db.exec(`
     FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
   );
 
+  CREATE TABLE IF NOT EXISTS posts (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    content TEXT DEFAULT '',
+    image TEXT DEFAULT '',
+    createdAt TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS reels (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    video TEXT NOT NULL,
+    caption TEXT DEFAULT '',
+    createdAt TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS stories (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    media TEXT NOT NULL,
+    type TEXT DEFAULT 'image',
+    createdAt TEXT DEFAULT (datetime('now')),
+    expiresAt TEXT DEFAULT (datetime('now', '+1 day')),
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS likes (
+    id TEXT PRIMARY KEY,
+    targetId TEXT NOT NULL,
+    targetType TEXT NOT NULL,
+    userId TEXT NOT NULL,
+    createdAt TEXT DEFAULT (datetime('now')),
+    UNIQUE(targetId, targetType, userId)
+  );
+
+  CREATE TABLE IF NOT EXISTS comments (
+    id TEXT PRIMARY KEY,
+    targetId TEXT NOT NULL,
+    targetType TEXT NOT NULL,
+    userId TEXT NOT NULL,
+    content TEXT NOT NULL,
+    createdAt TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS follows (
+    followerId TEXT NOT NULL,
+    followingId TEXT NOT NULL,
+    createdAt TEXT DEFAULT (datetime('now')),
+    PRIMARY KEY (followerId, followingId),
+    FOREIGN KEY (followerId) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (followingId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS notifications (
+    id TEXT PRIMARY KEY,
+    userId TEXT NOT NULL,
+    fromUserId TEXT NOT NULL,
+    type TEXT NOT NULL,
+    referenceId TEXT DEFAULT '',
+    read INTEGER DEFAULT 0,
+    createdAt TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (fromUserId) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  ALTER TABLE users ADD COLUMN bio TEXT DEFAULT '';
+
   CREATE INDEX IF NOT EXISTS idx_messages_conv ON messages(conversationId, createdAt);
   CREATE INDEX IF NOT EXISTS idx_message_status_user ON message_status(userId, status);
   CREATE INDEX IF NOT EXISTS idx_conversation_members_user ON conversation_members(userId);
+  CREATE INDEX IF NOT EXISTS idx_posts_user ON posts(userId, createdAt);
+  CREATE INDEX IF NOT EXISTS idx_reels_user ON reels(userId, createdAt);
+  CREATE INDEX IF NOT EXISTS idx_stories_user ON stories(userId, createdAt);
+  CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(userId, createdAt);
 `);
 
 module.exports = db;

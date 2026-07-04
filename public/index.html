@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flame - Find Your Spark</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Flame - Connect</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -23,34 +23,16 @@
         <button class="auth-tab" data-tab="register">Create Account</button>
       </div>
       <form id="login-form" class="auth-form active">
-        <div class="input-group">
-          <i class="fas fa-user"></i>
-          <input type="text" id="login-username" placeholder="Username" required>
-        </div>
-        <div class="input-group">
-          <i class="fas fa-lock"></i>
-          <input type="password" id="login-password" placeholder="Password" required>
-        </div>
+        <div class="input-group"><i class="fas fa-user"></i><input type="text" id="login-username" placeholder="Username" required></div>
+        <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="login-password" placeholder="Password" required></div>
         <button type="submit" class="auth-btn">Sign In <i class="fas fa-arrow-right"></i></button>
         <p class="auth-error" id="login-error"></p>
       </form>
       <form id="register-form" class="auth-form">
-        <div class="input-group">
-          <i class="fas fa-user"></i>
-          <input type="text" id="reg-username" placeholder="Username" required>
-        </div>
-        <div class="input-group">
-          <i class="fas fa-smile"></i>
-          <input type="text" id="reg-displayname" placeholder="Display Name" required>
-        </div>
-        <div class="input-group">
-          <i class="fas fa-lock"></i>
-          <input type="password" id="reg-password" placeholder="Password" required>
-        </div>
-        <div class="input-group">
-          <i class="fas fa-lock"></i>
-          <input type="password" id="reg-confirm" placeholder="Confirm Password" required>
-        </div>
+        <div class="input-group"><i class="fas fa-user"></i><input type="text" id="reg-username" placeholder="Username" required></div>
+        <div class="input-group"><i class="fas fa-smile"></i><input type="text" id="reg-displayname" placeholder="Display Name" required></div>
+        <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="reg-password" placeholder="Password" required></div>
+        <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="reg-confirm" placeholder="Confirm Password" required></div>
         <button type="submit" class="auth-btn">Create Account <i class="fas fa-rocket"></i></button>
         <p class="auth-error" id="register-error"></p>
       </form>
@@ -59,219 +41,147 @@
 
   <!-- Main App -->
   <div id="app" class="app hidden">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <!-- User Header -->
-      <header class="sidebar-header">
-        <div class="current-user" id="current-user">
-          <div class="avatar" id="my-avatar">ML</div>
-          <div class="user-info">
-            <h3 id="my-name">User</h3>
-            <span class="status-dot online"></span><span class="status-text">Online</span>
-          </div>
+    <!-- ===== VIEW: FEED ===== -->
+    <div class="view feed-view" id="view-feed">
+      <header class="view-header"><h1>Flame</h1><div class="view-header-actions"><button id="theme-toggle-feed" class="icon-btn"><i class="fas fa-moon"></i></button><button id="logout-btn-feed" class="icon-btn"><i class="fas fa-sign-out-alt"></i></button></div></header>
+      <div class="stories-bar" id="stories-bar"><div class="loading-item">Loading stories...</div></div>
+      <div class="feed-container" id="feed-container">
+        <div class="create-post-card" id="create-post-card">
+          <div class="avatar" id="feed-my-avatar"></div>
+          <span>What's on your mind?</span>
         </div>
-        <div class="header-actions">
-          <button id="theme-toggle" class="icon-btn" title="Toggle Theme"><i class="fas fa-moon"></i></button>
-          <button id="new-chat-btn" class="icon-btn" title="New Chat"><i class="fas fa-pen-plus"></i></button>
-          <button id="logout-btn" class="icon-btn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
-        </div>
-      </header>
-
-      <!-- Search -->
-      <div class="search-bar">
-        <i class="fas fa-search"></i>
-        <input type="text" id="search-input" placeholder="Search conversations or users...">
+        <div class="feed-posts" id="feed-posts"><div class="loading-item"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div></div>
       </div>
+    </div>
 
-      <!-- Conversations List -->
-      <div class="conversations-list" id="conversations-list">
-        <div class="conv-item loading-item"><i class="fas fa-circle-notch fa-spin"></i> Loading conversations...</div>
+    <!-- ===== VIEW: REELS ===== -->
+    <div class="view reels-view" id="view-reels">
+      <header class="view-header reels-header"><h1>Reels</h1><div><button id="upload-reel-btn" class="icon-btn"><i class="fas fa-plus-circle"></i></button></div></header>
+      <div class="reels-container" id="reels-container"><div class="loading-item"><i class="fas fa-circle-notch fa-spin"></i> Loading reels...</div></div>
+    </div>
+
+    <!-- ===== VIEW: CHATS ===== -->
+    <div class="view chats-view" id="view-chats">
+      <header class="view-header"><h1>Chats</h1><div class="view-header-actions"><button id="new-chat-btn" class="icon-btn"><i class="fas fa-pen-plus"></i></button><button id="chats-search-btn" class="icon-btn"><i class="fas fa-search"></i></button></div></header>
+      <div class="chats-search-bar hidden" id="chats-search-bar">
+        <i class="fas fa-search"></i><input type="text" id="chats-search-input" placeholder="Search conversations or users...">
+        <button id="chats-search-close" class="icon-btn"><i class="fas fa-times"></i></button>
       </div>
-
-      <!-- Online Users Section -->
-      <div class="online-section">
-        <div class="online-header"><span>Online</span><span id="online-count">0</span></div>
-        <div class="online-users" id="online-users"></div>
-      </div>
-    </aside>
-
-    <!-- Main Chat Area -->
-    <main class="chat-area" id="chat-area">
-      <!-- No Chat Selected -->
-      <div class="no-chat" id="no-chat">
-        <div class="no-chat-content">
-          <div class="no-chat-icon"><i class="fas fa-heart"></i></div>
-          <h2>Welcome to Flame</h2>
-          <p>Your spark is just a message away</p>
-          <button id="start-chat-btn" class="action-btn"><i class="fas fa-plus-circle"></i> New Chat</button>
-        </div>
-      </div>
-
-      <!-- Active Chat -->
-      <div class="chat-view hidden" id="chat-view">
-        <!-- Chat Header -->
+      <div class="conversations-list" id="conversations-list"><div class="loading-item"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div></div>
+      <!-- Chat view inline -->
+      <div class="chat-inline hidden" id="chat-inline">
         <header class="chat-header">
           <div class="chat-header-left">
-            <button class="icon-btn mobile-back" id="mobile-back"><i class="fas fa-arrow-left"></i></button>
+            <button class="icon-btn" id="chat-back"><i class="fas fa-arrow-left"></i></button>
             <div class="avatar" id="chat-avatar">...</div>
-            <div class="chat-header-info">
-              <h3 id="chat-name">Chat</h3>
-              <p id="chat-status" class="typing-status"></p>
-            </div>
+            <div class="chat-header-info"><h3 id="chat-name">Chat</h3><p id="chat-status" class="typing-status"></p></div>
           </div>
           <div class="chat-header-actions">
-            <button id="video-call-btn" class="icon-btn" title="Video Call"><i class="fas fa-video"></i></button>
-            <button id="chat-search-btn" class="icon-btn" title="Search in chat"><i class="fas fa-search"></i></button>
-            <button id="chat-info-btn" class="icon-btn" title="Chat Info"><i class="fas fa-info-circle"></i></button>
+            <button id="video-call-btn" class="icon-btn"><i class="fas fa-video"></i></button>
+            <button id="chat-search-btn" class="icon-btn"><i class="fas fa-search"></i></button>
+            <button id="chat-info-btn" class="icon-btn"><i class="fas fa-info-circle"></i></button>
           </div>
         </header>
-
-        <!-- Chat Search -->
         <div class="chat-search-bar hidden" id="chat-search-bar">
-          <i class="fas fa-search"></i>
-          <input type="text" id="chat-search-input" placeholder="Search messages...">
+          <i class="fas fa-search"></i><input type="text" id="chat-search-input" placeholder="Search messages...">
           <button id="chat-search-close" class="icon-btn"><i class="fas fa-times"></i></button>
-          <div class="search-nav">
-            <span id="search-results-count">0 results</span>
-            <button id="search-prev" class="icon-btn"><i class="fas fa-chevron-up"></i></button>
-            <button id="search-next" class="icon-btn"><i class="fas fa-chevron-down"></i></button>
-          </div>
+          <div class="search-nav"><span id="search-results-count">0</span><button id="search-prev" class="icon-btn"><i class="fas fa-chevron-up"></i></button><button id="search-next" class="icon-btn"><i class="fas fa-chevron-down"></i></button></div>
         </div>
-
-        <!-- Messages Container -->
         <div class="messages-container" id="messages-container">
-          <div class="messages-loading" id="messages-loading">
-            <i class="fas fa-circle-notch fa-spin"></i> Loading messages...
-          </div>
+          <div class="messages-loading" id="messages-loading"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div>
           <div class="messages-wrapper" id="messages-wrapper"></div>
         </div>
-
-        <!-- Typing Indicator -->
-        <div class="typing-indicator hidden" id="typing-indicator">
-          <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
-          <span class="typing-text" id="typing-text">Someone is typing...</span>
-        </div>
-
-        <!-- Reply Preview -->
-        <div class="reply-preview hidden" id="reply-preview">
-          <div class="reply-info">
-            <span class="reply-label" id="reply-label">Replying to</span>
-            <span class="reply-content" id="reply-content"></span>
-          </div>
-          <button id="reply-close" class="icon-btn"><i class="fas fa-times"></i></button>
-        </div>
-
-        <!-- Message Input -->
+        <div class="typing-indicator hidden" id="typing-indicator"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-text" id="typing-text"></span></div>
+        <div class="reply-preview hidden" id="reply-preview"><div class="reply-info"><span class="reply-label" id="reply-label">Replying</span><span class="reply-content" id="reply-content"></span></div><button id="reply-close" class="icon-btn"><i class="fas fa-times"></i></button></div>
         <div class="message-input-container">
           <button class="icon-btn input-btn" id="emoji-btn"><i class="fas fa-smile"></i></button>
           <button class="icon-btn input-btn" id="attach-btn"><i class="fas fa-paperclip"></i></button>
-          <div class="input-wrapper">
-            <div class="message-input" id="message-input" contenteditable="true" placeholder="Type a message..."></div>
-          </div>
+          <div class="input-wrapper"><div class="message-input" id="message-input" contenteditable="true" placeholder="Type a message..."></div></div>
           <button class="icon-btn input-btn" id="voice-btn"><i class="fas fa-microphone"></i></button>
           <button class="send-btn" id="send-btn"><i class="fas fa-paper-plane"></i></button>
         </div>
       </div>
-    </main>
+      <div class="emoji-picker hidden" id="emoji-picker"><div class="emoji-categories"><button class="emoji-cat active" data-cat="smileys">&#128512;</button><button class="emoji-cat" data-cat="people">&#128170;</button><button class="emoji-cat" data-cat="animals">&#128049;</button><button class="emoji-cat" data-cat="food">&#127858;</button><button class="emoji-cat" data-cat="travel">&#9968;</button><button class="emoji-cat" data-cat="objects">&#128218;</button><button class="emoji-cat" data-cat="symbols">&#2764;</button></div><div class="emoji-grid" id="emoji-grid"></div></div>
+    </div>
 
-    <!-- Emoji Picker -->
-    <div class="emoji-picker hidden" id="emoji-picker">
-      <div class="emoji-categories">
-        <button class="emoji-cat active" data-cat="smileys">&#128512;</button>
-        <button class="emoji-cat" data-cat="people">&#128170;</button>
-        <button class="emoji-cat" data-cat="animals">&#128049;</button>
-        <button class="emoji-cat" data-cat="food">&#127858;</button>
-        <button class="emoji-cat" data-cat="travel">&#9968;</button>
-        <button class="emoji-cat" data-cat="objects">&#128218;</button>
-        <button class="emoji-cat" data-cat="symbols">&#2764;</button>
-      </div>
-      <div class="emoji-grid" id="emoji-grid"></div>
+    <!-- ===== VIEW: NOTIFICATIONS ===== -->
+    <div class="view notifs-view" id="view-notifs">
+      <header class="view-header"><h1>Notifications</h1></header>
+      <div class="notifs-container" id="notifs-container"><div class="loading-item"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div></div>
+    </div>
+
+    <!-- ===== VIEW: PROFILE ===== -->
+    <div class="view profile-view" id="view-profile">
+      <header class="view-header"><h1>Profile</h1><div class="view-header-actions"><button id="edit-profile-btn" class="icon-btn"><i class="fas fa-cog"></i></button></div></header>
+      <div class="profile-container" id="profile-container"><div class="loading-item">Loading...</div></div>
+    </div>
+
+    <!-- ===== BOTTOM NAV ===== -->
+    <nav class="bottom-nav" id="bottom-nav">
+      <button class="nav-item active" data-view="feed"><i class="fas fa-home"></i><span>Home</span></button>
+      <button class="nav-item" data-view="reels"><i class="fas fa-film"></i><span>Reels</span></button>
+      <button class="nav-item" data-view="chats"><i class="fas fa-comment-dots"></i><span>Chats</span><span class="nav-badge hidden" id="chat-badge">0</span></button>
+      <button class="nav-item" data-view="notifs"><i class="fas fa-bell"></i><span>Alerts</span><span class="nav-badge hidden" id="notif-badge">0</span></button>
+      <button class="nav-item" data-view="profile"><i class="fas fa-user"></i><span>Me</span></button>
+    </nav>
+
+    <!-- Hidden file input for posts/reels -->
+    <input type="file" id="post-image-input" accept="image/*" hidden>
+    <input type="file" id="reel-video-input" accept="video/*" hidden>
+    <input type="file" id="story-media-input" accept="image/*,video/*" hidden>
+
+    <!-- Create Post Modal -->
+    <div class="modal-overlay hidden" id="create-post-modal">
+      <div class="modal"><div class="modal-header"><h3>Create Post</h3><button class="icon-btn modal-close"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body"><textarea id="post-content" placeholder="What's on your mind?" rows="4"></textarea><div id="post-image-preview" class="post-image-preview hidden"></div></div>
+      <div class="modal-footer"><button class="modal-btn secondary" id="post-add-image"><i class="fas fa-image"></i> Photo</button><button class="modal-btn primary" id="post-submit">Share</button></div></div>
+    </div>
+
+    <!-- Upload Reel Modal -->
+    <div class="modal-overlay hidden" id="upload-reel-modal">
+      <div class="modal"><div class="modal-header"><h3>Upload Reel</h3><button class="icon-btn modal-close"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body"><div id="reel-upload-area"><i class="fas fa-cloud-upload-alt" style="font-size:48px;color:var(--accent);margin-bottom:12px;"></i><p>Tap to select a video</p></div><input type="text" id="reel-caption" placeholder="Write a caption..."></div>
+      <div class="modal-footer"><button class="modal-btn primary" id="reel-submit" disabled>Upload</button></div></div>
+    </div>
+
+    <!-- Story Viewer -->
+    <div class="story-viewer hidden" id="story-viewer">
+      <div class="story-header"><div class="story-user" id="story-user-info"><div class="avatar" id="story-user-avatar"></div><span id="story-username"></span></div><button class="icon-btn" id="story-close" style="color:white;"><i class="fas fa-times"></i></button></div>
+      <div class="story-progress" id="story-progress"></div>
+      <img id="story-image" class="story-media" style="display:none;">
+      <video id="story-video" class="story-media" autoplay playsinline style="display:none;"></video>
+      <div class="story-nav"><button class="icon-btn" id="story-prev"><i class="fas fa-chevron-left"></i></button><button class="icon-btn" id="story-next"><i class="fas fa-chevron-right"></i></button></div>
     </div>
 
     <!-- New Chat Modal -->
     <div class="modal-overlay hidden" id="new-chat-modal">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>New Conversation</h3>
-          <button class="icon-btn modal-close"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="modal-body">
-          <div class="modal-tabs">
-            <button class="modal-tab active" data-type="direct">Direct Message</button>
-            <button class="modal-tab" data-type="group">Group Chat</button>
-          </div>
-          <div class="search-bar modal-search">
-            <i class="fas fa-search"></i>
-            <input type="text" id="user-search-input" placeholder="Search users...">
-          </div>
-          <div class="selected-users" id="selected-users"></div>
-          <div class="users-list" id="users-list">
-            <div class="loading-item"><i class="fas fa-circle-notch fa-spin"></i> Loading users...</div>
-          </div>
-          <div class="group-name-input hidden" id="group-name-input">
-            <input type="text" placeholder="Group name...">
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="modal-btn secondary" id="modal-cancel">Cancel</button>
-          <button class="modal-btn primary" id="modal-start" disabled>Start Chat</button>
-        </div>
+      <div class="modal"><div class="modal-header"><h3>New Conversation</h3><button class="icon-btn modal-close"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <div class="modal-tabs"><button class="modal-tab active" data-type="direct">Direct</button><button class="modal-tab" data-type="group">Group</button></div>
+        <div class="search-bar modal-search"><i class="fas fa-search"></i><input type="text" id="user-search-input" placeholder="Search users..."></div>
+        <div class="selected-users" id="selected-users"></div>
+        <div class="users-list" id="users-list"><div class="loading-item"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div></div>
+        <div class="group-name-input hidden" id="group-name-input"><input type="text" placeholder="Group name..."></div>
       </div>
+      <div class="modal-footer"><button class="modal-btn secondary" id="modal-cancel">Cancel</button><button class="modal-btn primary" id="modal-start" disabled>Start</button></div></div>
     </div>
 
     <!-- Chat Info Modal -->
     <div class="modal-overlay hidden" id="chat-info-modal">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>Chat Info</h3>
-          <button class="icon-btn modal-close"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="modal-body chat-info-body" id="chat-info-body"></div>
-        <div class="modal-footer">
-          <button class="modal-btn danger" id="leave-chat-btn"><i class="fas fa-sign-out-alt"></i> Leave Chat</button>
-        </div>
-      </div>
+      <div class="modal"><div class="modal-header"><h3>Chat Info</h3><button class="icon-btn modal-close"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body chat-info-body" id="chat-info-body"></div>
+      <div class="modal-footer"><button class="modal-btn danger" id="leave-chat-btn"><i class="fas fa-sign-out-alt"></i> Leave</button></div></div>
     </div>
 
-    <!-- Profile Modal -->
-    <div class="modal-overlay hidden" id="profile-modal">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>My Profile</h3>
-          <button class="icon-btn modal-close"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="modal-body profile-body">
-          <div class="profile-avatar" id="profile-avatar">
-            <div class="avatar large">ML</div>
-            <button id="change-avatar-btn" class="avatar-edit"><i class="fas fa-camera"></i></button>
-          </div>
-          <div class="profile-field">
-            <label>Username</label>
-            <p id="profile-username"></p>
-          </div>
-          <div class="profile-field">
-            <label>Display Name</label>
-            <div class="edit-field">
-              <input type="text" id="profile-displayname">
-              <button id="save-profile-btn" class="icon-btn"><i class="fas fa-check"></i></button>
-            </div>
-          </div>
-        </div>
+    <!-- Edit Profile Modal -->
+    <div class="modal-overlay hidden" id="edit-profile-modal">
+      <div class="modal"><div class="modal-header"><h3>Edit Profile</h3><button class="icon-btn modal-close"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <div class="profile-avatar" id="edit-avatar-preview"><div class="avatar large">ML</div><button id="change-avatar-btn" class="avatar-edit"><i class="fas fa-camera"></i></button></div>
+        <div class="profile-field"><label>Display Name</label><input type="text" id="edit-displayname"></div>
+        <div class="profile-field"><label>Bio</label><textarea id="edit-bio" rows="3" placeholder="Tell people about yourself..."></textarea></div>
       </div>
-    </div>
-
-    <!-- File Preview -->
-    <div class="modal-overlay hidden" id="file-preview-modal">
-      <div class="modal file-preview-modal">
-        <div class="modal-header">
-          <h3>Send File</h3>
-          <button class="icon-btn modal-close"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="modal-body file-preview-body" id="file-preview-body"></div>
-        <div class="modal-footer">
-          <button class="modal-btn primary" id="send-file-btn">Send <i class="fas fa-paper-plane"></i></button>
-        </div>
-      </div>
+      <div class="modal-footer"><button class="modal-btn secondary modal-close">Cancel</button><button class="modal-btn primary" id="save-profile-btn">Save</button></div></div>
     </div>
 
     <!-- Context Menu -->
@@ -281,68 +191,38 @@
       <button data-action="copy"><i class="fas fa-copy"></i> Copy</button>
       <button data-action="delete"><i class="fas fa-trash"></i> Delete</button>
       <div class="context-divider"></div>
-      <div class="context-reactions">
-        <span data-reaction="❤️">❤️</span>
-        <span data-reaction="😂">😂</span>
-        <span data-reaction="😮">😮</span>
-        <span data-reaction="😢">😢</span>
-        <span data-reaction="😡">😡</span>
-        <span data-reaction="👍">👍</span>
-      </div>
+      <div class="context-reactions"><span data-reaction="❤️">❤️</span><span data-reaction="😂">😂</span><span data-reaction="😮">😮</span><span data-reaction="😢">😢</span><span data-reaction="😡">😡</span><span data-reaction="👍">👍</span></div>
     </div>
 
     <!-- Recording Indicator -->
     <div class="recording-indicator hidden" id="recording-indicator">
-      <div class="recording-pulse"></div>
-      <span id="recording-time">0:00</span>
-      <div class="recording-actions">
-        <button id="recording-cancel" class="icon-btn"><i class="fas fa-times-circle"></i></button>
-        <button id="recording-send" class="icon-btn"><i class="fas fa-check-circle"></i></button>
-      </div>
+      <div class="recording-pulse"></div><span id="recording-time">0:00</span>
+      <div class="recording-actions"><button id="recording-cancel" class="icon-btn"><i class="fas fa-times-circle"></i></button><button id="recording-send" class="icon-btn"><i class="fas fa-check-circle"></i></button></div>
     </div>
-  </div>
 
-  <!-- Incoming Call Modal -->
-  <div class="call-modal hidden" id="incoming-call">
-    <div class="call-modal-content">
-      <div class="call-avatar" id="caller-avatar"><div class="avatar large">?</div></div>
-      <h3 id="caller-name">Incoming Call...</h3>
-      <p id="caller-status">Flame Video Call</p>
-      <div class="call-actions">
-        <button class="call-btn decline" id="call-decline"><i class="fas fa-phone-slash"></i></button>
-        <button class="call-btn accept" id="call-accept"><i class="fas fa-phone"></i></button>
-      </div>
+    <!-- Incoming Call -->
+    <div class="call-modal hidden" id="incoming-call">
+      <div class="call-modal-content"><div class="call-avatar" id="caller-avatar"><div class="avatar large">?</div></div><h3 id="caller-name">Calling...</h3><p id="caller-status">Flame Video Call</p>
+      <div class="call-actions"><button class="call-btn decline" id="call-decline"><i class="fas fa-phone-slash"></i></button><button class="call-btn accept" id="call-accept"><i class="fas fa-phone"></i></button></div></div>
     </div>
-  </div>
 
-  <!-- Video Call Overlay -->
-  <div class="video-overlay hidden" id="video-overlay">
-    <div class="video-header">
-      <span id="video-call-timer">00:00</span>
-      <span id="video-call-with"></span>
+    <!-- Video Overlay -->
+    <div class="video-overlay hidden" id="video-overlay">
+      <div class="video-header"><span id="video-call-timer">00:00</span><span id="video-call-with"></span></div>
+      <div class="video-container"><video id="remote-video" autoplay playsinline></video><div class="local-video-container"><video id="local-video" autoplay playsinline muted></video></div></div>
+      <div class="video-controls"><button class="vc-btn" id="vc-mute"><i class="fas fa-microphone"></i></button><button class="vc-btn" id="vc-camera"><i class="fas fa-video"></i></button><button class="vc-btn danger" id="vc-end"><i class="fas fa-phone-slash"></i></button><button class="vc-btn" id="vc-switch"><i class="fas fa-sync-alt"></i></button></div>
     </div>
-    <div class="video-container">
-      <video id="remote-video" autoplay playsinline></video>
-      <div class="local-video-container">
-        <video id="local-video" autoplay playsinline muted></video>
-      </div>
-    </div>
-    <div class="video-controls">
-      <button class="vc-btn" id="vc-mute"><i class="fas fa-microphone"></i></button>
-      <button class="vc-btn" id="vc-camera"><i class="fas fa-video"></i></button>
-      <button class="vc-btn danger" id="vc-end"><i class="fas fa-phone-slash"></i></button>
-      <button class="vc-btn" id="vc-switch"><i class="fas fa-sync-alt"></i></button>
-    </div>
-  </div>
 
-  <!-- Toast Container -->
-  <div class="toast-container" id="toast-container"></div>
+    <!-- Toast -->
+    <div class="toast-container" id="toast-container"></div>
+  </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
   <script src="js/state.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/socket.js"></script>
+  <script src="js/social.js"></script>
   <script src="js/chat.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/video.js"></script>

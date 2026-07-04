@@ -56,8 +56,8 @@ async function selectConversation(convId) {
   el.typingIndicator.classList.add('hidden');
   el.replyPreview.classList.add('hidden');
   state.replyTo = null;
-  el.noChat.classList.add('hidden');
-  el.chatView.classList.remove('hidden');
+  el.conversationsList.classList.add('hidden');
+  el.chatInline.classList.remove('hidden');
 
   const other = conv.members.find(m => m.id !== state.user.id);
   el.chatName.textContent = conv.isGroup ? conv.name : (other ? other.displayName : 'Unknown');
@@ -92,16 +92,12 @@ async function selectConversation(convId) {
     conv.unread = 0;
     renderConversations();
   } catch (e) { console.error(e); }
-
-  if (window.innerWidth <= 768) {
-    document.querySelector('.sidebar').classList.add('hidden-mobile');
-  }
 }
 
-el.mobileBack.addEventListener('click', () => {
-  document.querySelector('.sidebar').classList.remove('hidden-mobile');
-  el.chatView.classList.add('hidden');
-  el.noChat.classList.remove('hidden');
+el.chatBack.addEventListener('click', () => {
+  el.chatInline.classList.add('hidden');
+  el.conversationsList.classList.remove('hidden');
+  state.currentConv = null;
 });
 
 // ==================== MESSAGES ====================
@@ -435,7 +431,7 @@ function updateUserStatus(userId, status) {
 }
 
 // ==================== SEARCH ====================
-el.searchInput.addEventListener('input', debounce(async function() {
+el.chatsSearchInput.addEventListener('input', debounce(async function() {
   const q = this.value.trim();
   if (!q) return loadConversations();
   try {
@@ -451,7 +447,7 @@ el.searchInput.addEventListener('input', debounce(async function() {
 }, 300));
 
 async function startDirectChat(userId) {
-  el.searchInput.value = '';
+  el.chatsSearchInput.value = '';
   try {
     const res = await fetch('/api/conversations', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -467,7 +463,7 @@ async function startDirectChat(userId) {
   } catch (e) { showToast('Error starting chat', 'error'); }
 }
 
-// ==================== CHAT SEARCH ====================
+// ==================== MESSAGE SEARCH ====================
 el.chatSearchBtn.addEventListener('click', () => {
   el.chatSearchBar.classList.toggle('hidden');
   if (!el.chatSearchBar.classList.contains('hidden')) el.chatSearchInput.focus();

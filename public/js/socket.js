@@ -58,6 +58,12 @@ function connectSocket() {
     updateUserStatus(userId, status);
     if (status === 'online') state.onlineUsers.add(userId);
     else state.onlineUsers.delete(userId);
-    updateOnlineUsers();
+  });
+
+  state.socket.on('notification:new', (notif) => {
+    if (el.notifBadge) { el.notifBadge.classList.remove('hidden'); el.notifBadge.textContent = '1'; }
+    if (document.getElementById('view-notifs') && !document.getElementById('view-notifs').classList.contains('hidden')) {
+      if (typeof loadNotifications === 'function') loadNotifications();
+    }
   });
 }

@@ -37,7 +37,7 @@ app.post('/api/register', (req, res) => {
     const id = uuidv4();
     const hash = bcrypt.hashSync(password, 10);
     db.prepare('INSERT INTO users (id, username, displayName, password) VALUES (?,?,?,?)').run(id, username, displayName, hash);
-    res.json({ id, username, displayName, avatar: '' });
+    res.json({ id, username, displayName, avatar: '', bio: '' });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -47,13 +47,13 @@ app.post('/api/login', (req, res) => {
   try {
     const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
     if (!user || !bcrypt.compareSync(password, user.password)) return res.status(401).json({ error: 'Invalid credentials' });
-    res.json({ id: user.id, username: user.username, displayName: user.displayName, avatar: user.avatar });
+    res.json({ id: user.id, username: user.username, displayName: user.displayName, avatar: user.avatar, bio: user.bio });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.get('/api/me/:id', (req, res) => {
   try {
-    const user = db.prepare('SELECT id, username, displayName, avatar FROM users WHERE id = ?').get(req.params.id);
+    const user = db.prepare('SELECT id, username, displayName, avatar, bio FROM users WHERE id = ?').get(req.params.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json(user);
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -136,14 +136,6 @@ app.get('/api/users/:userId', (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.put('/api/users/:id/profile', (req, res) => {
-  const { displayName } = req.body;
-  try {
-    db.prepare('UPDATE users SET displayName = ? WHERE id = ?').run(displayName, req.params.id);
-    res.json({ success: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
 // ==================== MESSAGES ====================
 app.get('/api/messages/:conversationId/:userId', (req, res) => {
   const { conversationId, userId } = req.params;
@@ -203,6 +195,198 @@ app.post('/api/messages/:id/reaction', (req, res) => {
     else reactions[userId] = reaction;
     db.prepare('UPDATE messages SET reactions = ? WHERE id = ?').run(JSON.stringify(reactions), req.params.id);
     res.json({ reactions });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ==================== SOCIAL ====================
+// --- POSTS ---
+app.post('/api/posts', (req, res) => {
+  const { userId, content, image } = req.body;
+  try {
+    const id = uuidv4();
+    db.prepare('INSERT INTO posts (id, userId, content, image) VALUES (?,?,?,?)').run(id, userId, content || '', image || '');
+    const post = db.prepare('SELECT p.*, u.displayName, u.avatar FROM posts p JOIN users u ON p.userId = u.id WHERE p.id = ?').get(id);
+    res.json(post);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/posts/feed/:userId', (req, res) => {
+  try {
+    const posts = db.prepare(`
+      SELECT p.*, u.displayName, u.avatar,
+        (SELECT COUNT(*) FROM likes WHERE targetId = p.id AND targetType = 'post') as likeCount,
+        (SELECT COUNT(*) FROM comments WHERE targetId = p.id AND targetType = 'post') as commentCount,
+        (SELECT COUNT(*) FROM likes WHERE targetId = p.id AND targetType = 'post' AND userId = ?) as liked
+      FROM posts p JOIN users u ON p.userId = u.id
+      ORDER BY p.createdAt DESC LIMIT 50
+    `).all(req.params.userId);
+    res.json(posts);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/posts/:id/:userId', (req, res) => {
+  try {
+    db.prepare('DELETE FROM posts WHERE id = ? AND userId = ?').run(req.params.id, req.params.userId);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// --- REELS ---
+app.post('/api/reels', (req, res) => {
+  const { userId, video, caption } = req.body;
+  try {
+    const id = uuidv4();
+    db.prepare('INSERT INTO reels (id, userId, video, caption) VALUES (?,?,?,?)').run(id, userId, video, caption || '');
+    const reel = db.prepare('SELECT r.*, u.displayName, u.avatar FROM reels r JOIN users u ON r.userId = u.id WHERE r.id = ?').get(id);
+    res.json(reel);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/reels/:userId', (req, res) => {
+  try {
+    const reels = db.prepare(`
+      SELECT r.*, u.displayName, u.avatar,
+        (SELECT COUNT(*) FROM likes WHERE targetId = r.id AND targetType = 'reel') as likeCount,
+        (SELECT COUNT(*) FROM comments WHERE targetId = r.id AND targetType = 'reel') as commentCount,
+        (SELECT COUNT(*) FROM likes WHERE targetId = r.id AND targetType = 'reel' AND userId = ?) as liked
+      FROM reels r JOIN users u ON r.userId = u.id
+      ORDER BY r.createdAt DESC LIMIT 50
+    `).all(req.params.userId);
+    res.json(reels);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// --- STORIES ---
+app.post('/api/stories', (req, res) => {
+  const { userId, media, type } = req.body;
+  try {
+    db.prepare("DELETE FROM stories WHERE userId = ?").run(userId);
+    const id = uuidv4();
+    db.prepare('INSERT INTO stories (id, userId, media, type) VALUES (?,?,?,?)').run(id, userId, media, type || 'image');
+    const story = db.prepare('SELECT s.*, u.displayName, u.avatar FROM stories s JOIN users u ON s.userId = u.id WHERE s.id = ?').get(id);
+    res.json(story);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/stories', (req, res) => {
+  try {
+    const stories = db.prepare(`
+      SELECT s.*, u.displayName, u.avatar FROM stories s JOIN users u ON s.userId = u.id
+      WHERE s.expiresAt > datetime('now') ORDER BY s.createdAt DESC
+    `).all();
+    const grouped = {};
+    stories.forEach(s => {
+      if (!grouped[s.userId]) grouped[s.userId] = { user: { id: s.userId, displayName: s.displayName, avatar: s.avatar }, stories: [] };
+      grouped[s.userId].stories.push(s);
+    });
+    res.json(Object.values(grouped));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// --- LIKES ---
+app.post('/api/like', (req, res) => {
+  const { targetId, targetType, userId } = req.body;
+  try {
+    const existing = db.prepare('SELECT id FROM likes WHERE targetId = ? AND targetType = ? AND userId = ?').get(targetId, targetType, userId);
+    if (existing) {
+      db.prepare('DELETE FROM likes WHERE id = ?').run(existing.id);
+      res.json({ liked: false });
+    } else {
+      const id = uuidv4();
+      db.prepare('INSERT INTO likes (id, targetId, targetType, userId) VALUES (?,?,?,?)').run(id, targetId, targetType, userId);
+      const target = db.prepare(`SELECT userId FROM ${targetType === 'post' ? 'posts' : 'reels'} WHERE id = ?`).get(targetId);
+      if (target && target.userId !== userId) {
+        const nid = uuidv4();
+        db.prepare('INSERT INTO notifications (id, userId, fromUserId, type, referenceId) VALUES (?,?,?,?,?)').run(nid, target.userId, userId, 'like', targetId);
+      }
+      res.json({ liked: true });
+    }
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// --- COMMENTS ---
+app.post('/api/comments', (req, res) => {
+  const { targetId, targetType, userId, content } = req.body;
+  try {
+    const id = uuidv4();
+    db.prepare('INSERT INTO comments (id, targetId, targetType, userId, content) VALUES (?,?,?,?,?)').run(id, targetId, targetType, userId, content);
+    const comment = db.prepare('SELECT c.*, u.displayName, u.avatar FROM comments c JOIN users u ON c.userId = u.id WHERE c.id = ?').get(id);
+    const target = db.prepare(`SELECT userId FROM ${targetType === 'post' ? 'posts' : 'reels'} WHERE id = ?`).get(targetId);
+    if (target && target.userId !== userId) {
+      const nid = uuidv4();
+      db.prepare('INSERT INTO notifications (id, userId, fromUserId, type, referenceId) VALUES (?,?,?,?,?)').run(nid, target.userId, userId, 'comment', targetId);
+    }
+    res.json(comment);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/comments/:targetId/:targetType', (req, res) => {
+  try {
+    const comments = db.prepare(`
+      SELECT c.*, u.displayName, u.avatar FROM comments c JOIN users u ON c.userId = u.id
+      WHERE c.targetId = ? AND c.targetType = ? ORDER BY c.createdAt ASC
+    `).all(req.params.targetId, req.params.targetType);
+    res.json(comments);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// --- FOLLOW ---
+app.post('/api/follow', (req, res) => {
+  const { followerId, followingId } = req.body;
+  try {
+    const existing = db.prepare('SELECT * FROM follows WHERE followerId = ? AND followingId = ?').get(followerId, followingId);
+    if (existing) {
+      db.prepare('DELETE FROM follows WHERE followerId = ? AND followingId = ?').run(followerId, followingId);
+      res.json({ following: false });
+    } else {
+      db.prepare('INSERT INTO follows (followerId, followingId) VALUES (?,?)').run(followerId, followingId);
+      const nid = uuidv4();
+      db.prepare('INSERT INTO notifications (id, userId, fromUserId, type, referenceId) VALUES (?,?,?,?,?)').run(nid, followingId, followerId, 'follow', '');
+      res.json({ following: true });
+    }
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// --- PROFILE ---
+app.get('/api/profile/:id/:viewerId', (req, res) => {
+  try {
+    const user = db.prepare('SELECT id, username, displayName, avatar, bio, createdAt FROM users WHERE id = ?').get(req.params.id);
+    if (!user) return res.status(404).json({ error: 'Not found' });
+    const postCount = db.prepare('SELECT COUNT(*) as c FROM posts WHERE userId = ?').get(req.params.id).c;
+    const followerCount = db.prepare('SELECT COUNT(*) as c FROM follows WHERE followingId = ?').get(req.params.id).c;
+    const followingCount = db.prepare('SELECT COUNT(*) as c FROM follows WHERE followerId = ?').get(req.params.id).c;
+    const isFollowing = db.prepare('SELECT * FROM follows WHERE followerId = ? AND followingId = ?').get(req.params.viewerId, req.params.id);
+    const posts = db.prepare('SELECT * FROM posts WHERE userId = ? ORDER BY createdAt DESC LIMIT 20').all(req.params.id);
+    res.json({ ...user, postCount, followerCount, followingCount, isFollowing: !!isFollowing, posts });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/users/:id/profile', (req, res) => {
+  const { displayName, bio } = req.body;
+  try {
+    if (displayName) db.prepare('UPDATE users SET displayName = ? WHERE id = ?').run(displayName, req.params.id);
+    if (bio !== undefined) db.prepare('UPDATE users SET bio = ? WHERE id = ?').run(bio, req.params.id);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// --- NOTIFICATIONS ---
+app.get('/api/notifications/:userId', (req, res) => {
+  try {
+    const notifs = db.prepare(`
+      SELECT n.*, u.displayName, u.avatar FROM notifications n JOIN users u ON n.fromUserId = u.id
+      WHERE n.userId = ? ORDER BY n.createdAt DESC LIMIT 50
+    `).all(req.params.userId);
+    const unread = db.prepare('SELECT COUNT(*) as c FROM notifications WHERE userId = ? AND read = 0').get(req.params.userId);
+    res.json({ notifications: notifs, unread: unread.c });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/notifications/read', (req, res) => {
+  const { userId } = req.body;
+  try {
+    db.prepare('UPDATE notifications SET read = 1 WHERE userId = ?').run(userId);
+    res.json({ success: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -315,6 +499,10 @@ io.on('connection', (socket) => {
 
   socket.on('video:user-left', ({ conversationId }) => {
     socket.to(conversationId).emit('video:user-left', { conversationId });
+  });
+
+  socket.on('notification:new', ({ userId, notification }) => {
+    io.to('user:' + userId).emit('notification:new', notification);
   });
 
   socket.on('conversation:join', ({ conversationId, userId }) => {

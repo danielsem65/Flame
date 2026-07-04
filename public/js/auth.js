@@ -4,7 +4,7 @@ function showAuthError(form, msg) {
 }
 
 function saveSession(user) {
-  localStorage.setItem('flame_user', JSON.stringify({ id: user.id, username: user.username, displayName: user.displayName, avatar: user.avatar }));
+  localStorage.setItem('flame_user', JSON.stringify({ id: user.id, username: user.username, displayName: user.displayName, avatar: user.avatar, bio: user.bio }));
 }
 
 function clearSession() {
